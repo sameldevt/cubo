@@ -7,38 +7,42 @@ import java.util.Scanner;
 public class Main {
 
 	public static void main(String[] args) throws FileNotFoundException, InterruptedException {
-		int i = 1;
-		while (i != 5) {
-			String path = "cubes/cube";
-			
-			path += i + ".txt";
-			try (Scanner scan = new Scanner(new File(path))) {
-				while (scan.hasNextLine()) {
-					String line = scan.nextLine();
-					System.out.println(line);
-				}
+
+		try (Scanner scan = new Scanner(new File("cubes/cube.txt"))) {
+			while (scan.hasNextLine()) {
+				String line = scan.nextLine();
+				System.out.println(line);
 			}
-			i++;
-			Thread.sleep(1000);
 		}
-		
-		System.out.println("==================================================");
-		double b = 0.87;
-		double c = 0.73;
 
-		double a = Math.pow(b, 2) + Math.pow(c, 2);
-		double result = Math.sqrt(a);
-		
-		System.out.println("b = " + b + "cm");
-		System.out.println("c = " + c + "cm");
-		System.out.println();
-		System.out.println("x^2 = b^2 + c^2");
-		System.out.println("x^2 = (" + b + ")^2 + (" + c + ")^2");
-		System.out.println("x^2 = " + Math.pow(b, 2) + " + " + Math.pow(c, 2));
-		System.out.println("x^2 = " + a);
-		System.out.println("  x = " + "sqrt(" + a + ")");
-		System.out.println("  x = " + String.format("%.2f", result) + "cm");
-		System.out.println("==================================================");
+		Scanner scan = new Scanner(System.in);
 
+		System.out.print("Coordenadas 'O' (x y z) >");
+		double ox = scan.nextDouble();
+		double oy = scan.nextDouble();
+		double oz = scan.nextDouble();
+
+		System.out.print("Coordenadas 'X' (x y z) >");
+		double xx = scan.nextDouble();
+		double xy = scan.nextDouble();
+		double xz = scan.nextDouble();
+		
+		double x1minusx2 = ox-xx;
+		double y1minusy2 = oy-xy;
+		double z1minusz2 = oz-xz;
+		
+		double xpow2 = Math.pow(x1minusx2, 2);
+		double ypow2 = Math.pow(y1minusy2, 2);
+		double zpow2 = Math.pow(z1minusz2, 2);
+		
+		double xplusyplusz = xpow2 + ypow2 + zpow2;
+		
+		System.out.println("Dox = (oX,oY,oZ) - (xX, xY, xZ)");
+		System.out.println("Dox = ("+ ox + " , " + oy + " , " + oz + ") - (" + xx + " , " + xy + " , " + xz + ")");
+		System.out.println("Dox = " + x1minusx2 + ", " + y1minusy2 + ", " + z1minusz2);
+		System.out.println("Dox = sqrt(" + (ox - xx) + "^2 " + "+ " + (oy - xy) + "^2 " +"+ "+ (oz - xz) + "^2)");
+		System.out.println("Dox = sqrt(" + String.format("%.2f", xpow2) + " + " + String.format("%.2f", ypow2) + " + " + String.format("%.2f",zpow2));
+		System.out.println("Dox = sqrt(" + String.format("%.2f", xplusyplusz) + ")");
+		System.out.println("Dox = " + String.format("%.3f", Math.sqrt(xplusyplusz)));
 	}
 }
