@@ -2,15 +2,13 @@ package cube;
 
 import java.io.FileNotFoundException;
 
-import br.com.magna.control.Control;
-import br.com.magna.entities.Cube;
+import br.com.magna.entities.Simulation;
 
 public class Main {
 
 	public static void main(String[] args) throws FileNotFoundException, InterruptedException {
 
-		Cube ce = new Cube();
-		new Thread(new Control()).start();
+		new Thread(Simulation.getInstance()).start();
 
 //
 //		Scanner scan = new Scanner(System.in);

@@ -1,71 +1,88 @@
 package br.com.magna.control;
 
+import br.com.magna.entities.Face;
+
 public class Cursor {
-	private int xPosition;
-	private int yPosition;
-	private int[] pin1Cords;
-	private int[] pin2Cords;
-	private int totalPins;
+	private Integer linePosition;
+	private Integer columnPosition;
+	private boolean isPined = false;
+	private Double[] cursorCoordinates;
 
 	public Cursor() {
-		xPosition = 0;
-		yPosition = 0;
-		pin1Cords = new int[] {-1, -1};
-		pin2Cords = new int[] {-1, -1};
-		totalPins = 0;
+		linePosition = 1;
+		columnPosition = 1;
+		cursorCoordinates = new Double[3];
 	}
 
-	public void clearPins() {
-		pin1Cords = new int[] {-1, -1};
-		pin2Cords = new int[] {-1, -1};
-		totalPins = 0;
+	public void setIsPined(boolean condition) {
+		isPined = condition;
 	}
 
-	public void resetPositionsAndTotalPins() {
-		pin1Cords[0] = -1;
-		pin1Cords[1] = -1;
-		pin2Cords[0] = -1;
-		pin2Cords[1] = -1;
-		totalPins = 0;
+	public boolean getIsPined() {
+		return isPined;
 	}
 
-	public int getXPosition() {
-		return xPosition;
+	public Integer getLinePosition() {
+		return linePosition;
 	}
 
-	public int getYPosition() {
-		return yPosition;
+	public Integer getColumnPosition() {
+		return columnPosition;
 	}
 
-	public int[] getPin1Cords() {
-		return pin1Cords;
+	public void setLinePosition(Integer linePosition) {
+		this.linePosition = linePosition;
 	}
 
-	public int[] getPin2Cords() {
-		return pin2Cords;
+	public void setColumnPosition(Integer columnPosition) {
+		this.columnPosition = columnPosition;
+	}
+	
+	public Double[] getCursorCoordinates() {
+		return cursorCoordinates;
 	}
 
-	public int getTotalPins() {
-		return totalPins;
-	}
-
-	public void setxPosition(int xPosition) {
-		this.xPosition = xPosition;
-	}
-
-	public void setyPosition(int yPosition) {
-		this.yPosition = yPosition;
-	}
-
-	public void setPin1Cords(int[] pin1Cords) {
-		this.pin1Cords = pin1Cords;
-	}
-
-	public void setPin2Cords(int[] pin2Cords) {
-		this.pin2Cords = pin2Cords;
-	}
-
-	public void setTotalPins(int totalPins) {
-		this.totalPins = totalPins;
+	public void setCursorCoordinates(Face face) {
+		int faceNodeValue = face.getFaceNode().getValue();
+		Character[][] matrix = face.getMatrix();
+		
+		switch (faceNodeValue) {
+		case 1: {
+			cursorCoordinates[0] = 1.0;
+			cursorCoordinates[1] = (double) linePosition / matrix.length;
+			cursorCoordinates[2] = (double) columnPosition / matrix[0].length;
+			break;
+		}
+		case 2: {
+			cursorCoordinates[0] = (double) linePosition / matrix.length;
+			cursorCoordinates[1] = 1.0;
+			cursorCoordinates[2] = (double)columnPosition / matrix[0].length;
+			break;
+		}
+		case 3: {
+			cursorCoordinates[0] = 0.0;
+			cursorCoordinates[1] = (double) columnPosition / matrix[0].length;
+			cursorCoordinates[2] = (double) linePosition / matrix.length;
+			break;
+		}
+		case 4: {
+			cursorCoordinates[0] = (double) columnPosition / matrix[0].length;
+			cursorCoordinates[1] = 0.0;
+			cursorCoordinates[2] = (double) linePosition / matrix.length;
+			break;
+		}
+		case 5: {
+			cursorCoordinates[0] = (double) columnPosition / matrix[0].length;
+			cursorCoordinates[1] = (double) linePosition / matrix.length;
+			cursorCoordinates[2] = 1.0;
+			break;
+		}
+		case 6: {
+			cursorCoordinates[0] = (double) linePosition / matrix.length;
+			cursorCoordinates[1] = (double) columnPosition / matrix[0].length;
+			cursorCoordinates[2] = 0.0;
+			break;
+		}
+		}
 	}
 }

@@ -2,154 +2,178 @@ package br.com.magna.control;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
 
-import br.com.magna.entities.Cube;
-import br.com.magna.entities.CubeAnimation;
+import br.com.magna.entities.Animation;
+import br.com.magna.entities.Calc;
+import br.com.magna.entities.Face;
 import br.com.magna.entities.Simulation;
 import br.com.magna.services.LogHandler;
-import br.com.magna.services.TerminalHandler;
 
 public class Control extends JFrame implements KeyListener, Runnable {
 
+	private static final long serialVersionUID = 1L;
+	
 	private static Map<Integer, Method> controls = new HashMap<>();
-	private Simulation simulationInstance = new Simulation();
-	private CubeAnimation ca = new CubeAnimation();
+	private Simulation simulation = Simulation.getInstance();
 
 	public Control() {
 	}
 
-	private void loadRotationControls() {
-		try {
-			controls.put(KeyEvent.VK_UP, Control.class.getDeclaredMethod("rotateCubeUp", Cube.class));
-			controls.put(KeyEvent.VK_DOWN, Control.class.getDeclaredMethod("rotateCubeDown", Cube.class));
-			controls.put(KeyEvent.VK_RIGHT, Control.class.getDeclaredMethod("rotateCubeRight", Cube.class));
-			controls.put(KeyEvent.VK_LEFT, Control.class.getDeclaredMethod("rotateCubeLeft", Cube.class));
-			controls.put(KeyEvent.VK_ENTER, Control.class.getDeclaredMethod("selectCubeFace", Cube.class));
-		} catch (NoSuchMethodException e) {
-			LogHandler.error("Couldn't find method " + e.getMessage());
-		}
-	}
-
-	private void loadCursorControls() {
-		try {
-			controls.put(KeyEvent.VK_UP, Control.class.getDeclaredMethod("moveUp", Cursor.class));
-			controls.put(KeyEvent.VK_DOWN, Control.class.getDeclaredMethod("moveDown", Cursor.class));
-			controls.put(KeyEvent.VK_RIGHT, Control.class.getDeclaredMethod("moveRight", Cursor.class));
-			controls.put(KeyEvent.VK_LEFT, Control.class.getDeclaredMethod("moveLeft", Cursor.class));
-			controls.put(KeyEvent.VK_ENTER, Control.class.getDeclaredMethod("selectCubeFace", Cursor.class));
-			controls.put(KeyEvent.VK_ESCAPE, Control.class.getDeclaredMethod("removeSelections", Cursor.class));
-		} catch (NoSuchMethodException e) {
-			LogHandler.error("Couldn't find method " + e.getMessage());
-		}
+	@Override
+	public void run() {
+		loadRotationControls();
+		loadFrameConfiguration();
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		Method action = lookup(e.getKeyCode());
-		
-		try {
-			action.invoke(new Control(), new Cube());
-		} catch (IllegalAccessException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (InvocationTargetException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		synchronized (simulation) {
+			Method action = lookup(e.getKeyCode());
+			simulation.setAction(action);
+			simulation.notify();
 		}
 	}
 
 	public Method lookup(int key) {
 		return controls.get(key);
 	}
-
-	public void selectCubeFace(Cube cube) {
-
+	
+	public void executeCalculation() {
+		List<List<Double>> pinlist = simulation.getPins();
+		
+		Double[] pin1 = (Double[]) pinlist.get(0).toArray();
+		Double[] pin2 = (Double[]) pinlist.get(1).toArray();
+		
+		new Calc((Double[])pinlist.get(0).toArray(), (Double[])pinlist.get(1).toArray()).execute();
+	}
+	
+	public void selectCubeFace() {
+		simulation.setIsFaceSelected(true);
+		loadCursorControls();
 	}
 
-	public void rotateCubeRight(Cube cube) {
-		TerminalHandler.clear();
-		ca.rotateRight();
+	public void unselectCubeFace() {
+		simulation.setIsFaceSelected(false);
+		loadRotationControls();
 	}
 
-	public void rotateCubeLeft(Cube cube) {
-		TerminalHandler.clear();
-		ca.rotateLeft();
+	public void rotateCubeRight(Animation animation) {
+		simulation.setCurrentFace("Right");
+		Face currentFace = simulation.getCurrentFace();
+		animation.rotateRight(currentFace);
 	}
 
-	public void rotateCubeUp(Cube cube) {
-		TerminalHandler.clear();
-		ca.rotateUp();
+	public void rotateCubeLeft(Animation animation) {
+		simulation.setCurrentFace("Left");
+		Face currentFace = simulation.getCurrentFace();
+		animation.rotateLeft(currentFace);
 	}
 
-	public void rotateCubeDown(Cube cube) {
-		TerminalHandler.clear();
-		ca.rotateDown();
+	public void rotateCubeUp(Animation animation) {
+		simulation.setCurrentFace("Up");
+		Face currentFace = simulation.getCurrentFace();
+		animation.rotateUp(currentFace);
 	}
 
-	public void moveCursorRight(Cursor cursor) {
-		int currentYPosition = cursor.getYPosition();
-		cursor.setyPosition(currentYPosition + 1);
+	public void rotateCubeDown(Animation animation) {
+		simulation.setCurrentFace("Down");
+		Face currentFace = simulation.getCurrentFace();
+		animation.rotateDown(currentFace);
 	}
 
-	public void moveCursorLeft(Cursor cursor) {
-		int currentYPosition = cursor.getYPosition();
-		cursor.setyPosition(currentYPosition - 1);
-
+	public void moveCursorRight(Face face) {
+		Cursor cursor = face.getCursor();
+		int currentYPosition = cursor.getColumnPosition();
+		cursor.setColumnPosition(currentYPosition + 1);
+		cursor.setCursorCoordinates(face);
 	}
 
-	public void moveCursorUp(Cursor cursor) {
-		int currentXPosition = cursor.getXPosition();
-		cursor.setxPosition(currentXPosition - 1);
-
+	public void moveCursorLeft(Face face) {
+		Cursor cursor = face.getCursor();
+		int currentYPosition = cursor.getColumnPosition();
+		cursor.setColumnPosition(currentYPosition - 1);
+		cursor.setCursorCoordinates(face);
 	}
 
-	public void moveCursorDown(Cursor cursor) {
-		int currentXPosition = cursor.getXPosition();
-		cursor.setxPosition(currentXPosition + 1);
+	public void moveCursorUp(Face face) {
+		Cursor cursor = face.getCursor();
+		int currentXPosition = cursor.getLinePosition();
+		cursor.setLinePosition(currentXPosition - 1);
+		cursor.setCursorCoordinates(face);
 	}
 
-	public void selectCursorPosition(Cursor cursor) {
-		int totalPins = cursor.getTotalPins();
-		int cursorXPosition = cursor.getXPosition();
-		int cursorYPosition = cursor.getYPosition();
-		int[] cursorCords = new int[] { cursorXPosition, cursorYPosition };
+	public void moveCursorDown(Face face) {
+		Cursor cursor = face.getCursor();
+		int currentXPosition = cursor.getLinePosition();
+		cursor.setLinePosition(currentXPosition + 1);
+		cursor.setCursorCoordinates(face);
+	}
 
-		if (totalPins > 1) {
+	public void selectCoordinates(Face face) {
+		Cursor cursor = face.getCursor();
+		boolean isCursorPined = cursor.getIsPined();
+
+		if (isCursorPined) {
 			return;
 		}
-
-		if (totalPins == 0) {
-			cursor.setPin1Cords(cursorCords);
-			cursor.setTotalPins(totalPins + 1);
-			return;
-		}
-
-		if (totalPins == 1) {
-			cursor.setPin2Cords(cursorCords);
-			cursor.setTotalPins(totalPins + 1);
-			return;
-		}
+		simulation.addPin(face.setPinCoordinates());
 	}
 
-	public void removeCursorSelections(Cursor cursor) {
-		cursor.resetPositionsAndTotalPins();
+	public void removeCursorSelections(Face face) {
+		Cursor cursor = face.getCursor();
+		//cursor.resetPositionsAndTotalPins();
 	}
 
 	private void loadFrameConfiguration() {
 		addKeyListener(this);
 		setFocusable(true);
 		setVisible(false);
-		setAlwaysOnTop(true);
+		// setAlwaysOnTop(true);
 		setUndecorated(true);
 		setOpacity(0.01f);
-		setExtendedState(Control.MAXIMIZED_BOTH);
+		// setExtendedState(Control.MAXIMIZED_BOTH);
 		setVisible(true);
+	}
+	
+	private void loadRotationControls() {
+		if (!controls.isEmpty()) {
+			controls.clear();
+		}
+
+		try {
+			controls.put(KeyEvent.VK_UP, Control.class.getDeclaredMethod("rotateCubeUp", Animation.class));
+			controls.put(KeyEvent.VK_DOWN, Control.class.getDeclaredMethod("rotateCubeDown", Animation.class));
+			controls.put(KeyEvent.VK_RIGHT, Control.class.getDeclaredMethod("rotateCubeRight", Animation.class));
+			controls.put(KeyEvent.VK_LEFT, Control.class.getDeclaredMethod("rotateCubeLeft", Animation.class));
+			controls.put(KeyEvent.VK_SPACE, Control.class.getDeclaredMethod("executeCalculation"));
+			controls.put(KeyEvent.VK_ENTER, Control.class.getDeclaredMethod("selectCubeFace"));
+		} catch (NoSuchMethodException e) {
+			LogHandler.error("Couldn't find method " + e.getMessage());
+		}
+	}
+
+	private void loadCursorControls() {
+		if (!controls.isEmpty()) {
+			controls.clear();
+		}
+
+		try {
+			controls.put(KeyEvent.VK_UP, Control.class.getDeclaredMethod("moveCursorUp", Face.class));			
+			controls.put(KeyEvent.VK_DOWN, Control.class.getDeclaredMethod("moveCursorDown", Face.class));			
+			controls.put(KeyEvent.VK_RIGHT, Control.class.getDeclaredMethod("moveCursorRight", Face.class));			
+			controls.put(KeyEvent.VK_LEFT, Control.class.getDeclaredMethod("moveCursorLeft", Face.class));			
+			controls.put(KeyEvent.VK_ENTER, Control.class.getDeclaredMethod("selectCoordinates", Face.class));	
+			controls.put(KeyEvent.VK_SPACE, Control.class.getDeclaredMethod("executeCalculation"));
+			controls.put(KeyEvent.VK_ESCAPE, Control.class.getDeclaredMethod("unselectCubeFace"));	
+		} catch (NoSuchMethodException e) {
+			LogHandler.error("Couldn't find method " + e.getMessage());
+		}
 	}
 
 	@Override
@@ -158,15 +182,5 @@ public class Control extends JFrame implements KeyListener, Runnable {
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-	}
-
-	@Override
-	public void run() {
-		loadRotationControls();
-		loadFrameConfiguration();
-		while(true) {
-			
-		}
-		
 	}
 }

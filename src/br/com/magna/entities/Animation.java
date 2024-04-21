@@ -7,9 +7,9 @@ import java.util.Scanner;
 import br.com.magna.services.LogHandler;
 import br.com.magna.services.TerminalHandler;
 
-public class CubeAnimation {
+public class Animation {
 
-	public void rotateRight() {
+	public void rotateRight(Face face) {
 		String path = "";
 		int i = 1;
 		while (i < 8) {
@@ -32,7 +32,7 @@ public class CubeAnimation {
 		}
 	}
 
-	public void rotateLeft() {
+	public void rotateLeft(Face face) {
 		String path = "";
 		int i = 7;
 		while (i > 0) {
@@ -55,7 +55,7 @@ public class CubeAnimation {
 		}
 	}
 
-	public void rotateUp() {
+	public void rotateUp(Face face) {
 		String path = "";
 		int i = 1;
 
@@ -79,7 +79,7 @@ public class CubeAnimation {
 		
 	}
 	
-	public void rotateDown() {
+	public void rotateDown(Face face) {
 		String path = "";
 		int i = 7;
 
